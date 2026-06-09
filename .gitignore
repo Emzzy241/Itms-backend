@@ -1,0 +1,23 @@
+# --- .NET (C#) ---
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# --- IDEs / Editors ---
+.vs/
+.vscode/
+.idea/
+.DS_Store
+
+# --- Security / Credentials (CRITICAL) ---
+firebase-key.json
+*.env
+*.pem
+*.key
+
+# --- Docker ---
+# (If you create local persistence folders)
+data/

@@ -1,0 +1,85 @@
+# version: '3'
+# services:
+#   zookeeper:
+#     image: confluentinc/cp-zookeeper:7.5.0
+#     environment:
+#       ZOOKEEPER_CLIENT_PORT: 2181
+#       ZOOKEEPER_TICK_TIME: 2000
+
+#   kafka:
+#     image: confluentinc/cp-kafka:7.5.0
+#     depends_on:
+#       - zookeeper
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       KAFKA_BROKER_ID: 1
+#       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+#       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+#       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+#       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#       # These two lines prevent the error you saw:
+#       KAFKA_ENABLE_KRAFT: 'no'
+
+# version: '3.8'
+
+services:
+  # 1. Message Broker
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on: [zookeeper]
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # 2. Your Services
+  ingestion-service:
+    build: ./IngestionService
+    depends_on: [kafka]
+    ports: ["5024:80"]
+
+  intelligence-service:
+    build: ./IntelligenceService
+    depends_on: [kafka]
+
+  compliance-service:
+    build: ./ComplianceService
+    depends_on: [kafka]
+
+  sync-service:
+    build: ./SyncService
+    volumes:
+      - ./SyncService/firebase-key.json:/app/firebase-key.json
+    depends_on: [kafka]
+
+# The error environment variable "KAFKA_PROCESS_ROLES" is not set happens because the latest image of Kafka from Confluent now defaults to KRaft mode (which doesn't need Zookeeper), but our docker-compose file is trying to run it in the older Zookeeper mode.
+# To fix this and get a stable backbone for our Ingestion Layer, we had to update our docker-compose.yml to be explicit.
+# Running the old way: 
+# version: '3'
+# services:
+#   zookeeper:
+#     image: confluentinc/cp-zookeeper:latest
+#     environment:
+#       ZOOKEEPER_CLIENT_PORT: 2181
+#       ZOOKEEPER_TICK_TIME: 2000
+
+#   kafka:
+#     image: confluentinc/cp-kafka:latest
+#     depends_on:
+#       - zookeeper
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       KAFKA_BROKER_ID: 1
+#       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+#       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1

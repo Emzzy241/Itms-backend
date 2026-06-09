@@ -1,0 +1,66 @@
+# @IngestionService_HostAddress = http://localhost:5024
+
+# GET {{IngestionService_HostAddress}}/weatherforecast/
+# Accept: application/json
+
+
+
+# The "V" values (V1-V28) in the Credit Card Fraud dataset are PCA (Principal Component Analysis) transformations of a user's behavior. They represent:
+
+# V1-V5: Transaction frequency (Is this the 10th time they've shopped today?).
+
+# V10-V15: Location consistency (Are they suddenly in a different country?).
+
+# V20-V28: Terminal/Device metadata (Is this a recognized phone?).
+
+# If USER-666 is shopping today for the 10th time, with the same amount (10.00), then we can 
+# safely flag USER-666's next transaction. 
+# On the other had, USER-999 might be having just their 3rd transaction today of 5,000 and so 
+# we won't flag such transaction because the V1-V28 values are normal for that particular transaction.
+# This helps to depict the system's Event-Driven Architecture, where a transaction is only flagged 
+# when some certain events are triggered and not the current rule-based mechanism way of doing things.
+
+# For a flagged transaction
+# "senderId": "USER-666",
+# "recipientId": "MERCHANT-001",
+# "Amount": 10.00
+# Or For a Cleared Transaction that is not flagged and all
+# "senderId": "USER-99",
+# "recipientId": "MERCHANT-001",
+# "Amount": 10.00
+###
+
+POST http://localhost:5024/api/v1/transaction/ingest
+Content-Type: application/json
+
+{
+"senderId": "USER-666",
+"recipientId": "MERCHANT-001",
+"Amount": 10.00
+}
+
+# >>> Compliance Layer Running: Monitoring for High-Risk Events...
+# DEBUG RAW JSON: {"TransactionId":"6ae3decb-750e-49f3-b9a7-2fbd0e614140","SenderId":"USER-666","Amount":10.0,"RiskScore":98.9934,"IsFlagged":true,"TimeStamp":"2026-06-01T10:14:49.6166242Z","ProcessedAt":"2026-06-01T10:14:52.8526427Z"}
+# [METRIC] ID: 6ae3decb-750e-49f3-b9a7-2fbd0e614140 | Latency: 3904.38ms
+# [ALERT GENERATED] TXN: 6ae3decb-750e-49f3-b9a7-2fbd0e614140 | Level: CRITICAL | Score: 98.9934
+# DEBUG RAW JSON: {"TransactionId":"4527d21f-964c-4b34-b3cc-6e49d159ab4d","SenderId":"USER-666","Amount":10.0,"RiskScore":98.9934,"IsFlagged":true,"TimeStamp":"2026-06-01T10:14:57.6955492Z","ProcessedAt":"2026-06-01T10:14:59.868579Z"}
+# [METRIC] ID: 4527d21f-964c-4b34-b3cc-6e49d159ab4d | Latency: 2233.48ms
+# [ALERT GENERATED] TXN: 4527d21f-964c-4b34-b3cc-6e49d159ab4d | Level: CRITICAL | Score: 98.9934
+# DEBUG RAW JSON: {"TransactionId":"750c0a93-7fa0-491c-a8a4-a1da1582e182","SenderId":"USER-666","Amount":10.0,"RiskScore":98.9934,"IsFlagged":true,"TimeStamp":"2026-06-01T10:15:04.1270927Z","ProcessedAt":"2026-06-01T10:15:06.3244799Z"}
+# [METRIC] ID: 750c0a93-7fa0-491c-a8a4-a1da1582e182 | Latency: 2291.59ms
+# [ALERT GENERATED] TXN: 750c0a93-7fa0-491c-a8a4-a1da1582e182 | Level: CRITICAL | Score: 98.9934
+# DEBUG RAW JSON: {"TransactionId":"356a71fa-6d59-420c-807c-c8c5af10482b","SenderId":"USER-666","Amount":10.0,"RiskScore":98.9934,"IsFlagged":true,"TimeStamp":"2026-06-01T10:15:08.9986843Z","ProcessedAt":"2026-06-01T10:15:11.1845911Z"}
+# [METRIC] ID: 356a71fa-6d59-420c-807c-c8c5af10482b | Latency: 2252.20ms
+# [ALERT GENERATED] TXN: 356a71fa-6d59-420c-807c-c8c5af10482b | Level: CRITICAL | Score: 98.9934
+# DEBUG RAW JSON: {"TransactionId":"44cbd7e6-9d13-471b-95c1-7a0a74f6c99f","SenderId":"USER-666","Amount":10.0,"RiskScore":98.9934,"IsFlagged":true,"TimeStamp":"2026-06-01T10:16:25.9544041Z","ProcessedAt":"2026-06-01T10:16:28.0746033Z"}
+# [METRIC] ID: 44cbd7e6-9d13-471b-95c1-7a0a74f6c99f | Latency: 2186.51ms
+# [ALERT GENERATED] TXN: 44cbd7e6-9d13-471b-95c1-7a0a74f6c99f | Level: CRITICAL | Score: 98.9934
+# DEBUG RAW JSON: {"TransactionId":"bf108a5b-8076-4a15-98e4-f3f2ea956917","SenderId":"USER-999","Amount":10.0,"RiskScore":0.0053,"IsFlagged":false,"TimeStamp":"2026-06-01T10:19:49.2787583Z","ProcessedAt":"2026-06-01T10:19:51.4374828Z"}
+# [METRIC] ID: bf108a5b-8076-4a15-98e4-f3f2ea956917 | Latency: 2224.75ms
+# DEBUG RAW JSON: {"TransactionId":"a8a8d416-0a13-4d1d-a4c2-93beb5031692","SenderId":"USER-999","Amount":10.0,"RiskScore":0.0053,"IsFlagged":false,"TimeStamp":"2026-06-01T10:20:05.4884419Z","ProcessedAt":"2026-06-01T10:20:07.6694314Z"}
+# [METRIC] ID: a8a8d416-0a13-4d1d-a4c2-93beb5031692 | Latency: 2258.82ms
+
+
+
+### Endpoint to get latest store of the compliance service
+GET http://localhost:5024/api/v1/resultformat/latest
